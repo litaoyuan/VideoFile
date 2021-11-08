@@ -1,0 +1,38 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+buildscript {
+    repositories {
+        //国内阿里云镜像
+        maven { url "http://maven.aliyun.com/nexus/content/repositories/central/" }
+        maven { url 'http://maven.aliyun.com/nexus/content/groups/public/' }
+        maven {url 'https://dl.google.com/dl/android/maven2/'}
+        maven {url 'https://www.jitpack.io'}
+        maven { url "https://dl.bintray.com/thelasterstar/maven/" }
+        maven { url "http://maven.oschina.net/content/groups/public/" }
+        google()
+        jcenter()
+    }
+    dependencies {
+        classpath "com.android.tools.build:gradle:4.1.1"
+
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+allprojects {
+    repositories {
+        //国内阿里云镜像
+        maven { url "http://maven.aliyun.com/nexus/content/repositories/central/" }
+        maven { url 'http://maven.aliyun.com/nexus/content/groups/public/' }
+        maven {url 'https://dl.google.com/dl/android/maven2/'}
+        maven {url 'https://www.jitpack.io'}
+        maven { url "https://dl.bintray.com/thelasterstar/maven/" }
+        maven { url "http://maven.oschina.net/content/groups/public/" }
+        google()
+        jcenter()
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
