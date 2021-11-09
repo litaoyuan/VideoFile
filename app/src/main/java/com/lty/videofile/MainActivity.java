@@ -26,7 +26,6 @@ import static android.os.Environment.DIRECTORY_DCIM;
 public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding mBinding;
     public Activity mActivity;
-    private long time;
 
 
     @Override
@@ -37,6 +36,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(mBinding.getRoot());
         initView();
         showAvailableSize();
+        initOpenRear();
+        initOpenFront();
     }
 
     @SuppressLint("SetTextI18n")
@@ -81,29 +82,54 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+        mBinding.imgStop.setOnClickListener(v -> stopSevrice());
+        mBinding.tvFrontJiaodu.setOnClickListener(v -> {
+            int pro = SPUtils.getInstance().getAccountData("openFrontCamera", 0);
+            if (pro >= 360) {
+                SPUtils.getInstance().setAccountData("openFrontCamera", 0);
+            } else {
+                pro += 90;
+                SPUtils.getInstance().setAccountData("openFrontCamera", pro);
+            }
+            initOpenFront();
+        });
+        mBinding.tvRearJiaodu.setOnClickListener(v -> {
+            int pro = SPUtils.getInstance().getAccountData("openRearCamera", 0);
+            if (pro >= 360) {
+                SPUtils.getInstance().setAccountData("openRearCamera", 0);
+            } else {
+                pro += 90;
+                SPUtils.getInstance().setAccountData("openRearCamera", pro);
+            }
+            initOpenRear();
+        });
+    }
+
+    private void initOpenFront() {
+        int pro = SPUtils.getInstance().getAccountData("openFrontCamera", 0);
+        mBinding.tvFrontJiaodu.setText("前置摄像头旋转" + pro + "度");
+    }
+
+    private void initOpenRear() {
+        int pro = SPUtils.getInstance().getAccountData("openRearCamera", 0);
+        mBinding.tvRearJiaodu.setText("后置摄像头旋转" + pro + "度");
     }
 
     private void stopSevrice() {
+        mBinding.imgOpen.setText("开始视频录制");
         stopService(new Intent(mActivity, MonitorService.class));
     }
 
 
     private void openService() {
-        if (System.currentTimeMillis() - time > 1000) {
-            time = System.currentTimeMillis();
-            //连续启动Service
-            if (!MonitorService.isStarted) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    startForegroundService(new Intent(mActivity, MonitorService.class).putExtra("type", CameraCharacteristics.LENS_FACING_FRONT));
-                } else {
-                    startService(new Intent(mActivity, MonitorService.class).putExtra("type", CameraCharacteristics.LENS_FACING_FRONT));
-                }
-                mBinding.imgOpen.setText("视频录制中");
-                Toast.makeText(mActivity, "视频录制中", Toast.LENGTH_SHORT).show();
+        if (!MonitorService.isStarted) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(new Intent(mActivity, MonitorService.class).putExtra("type", CameraCharacteristics.LENS_FACING_FRONT));
+            } else {
+                startService(new Intent(mActivity, MonitorService.class).putExtra("type", CameraCharacteristics.LENS_FACING_FRONT));
             }
-        } else {
-            mBinding.imgOpen.setText("开始录制视频");
-            stopSevrice();
+            mBinding.imgOpen.setText("视频录制中");
+            Toast.makeText(mActivity, "视频录制中", Toast.LENGTH_SHORT).show();
         }
     }
 
