@@ -129,6 +129,10 @@ public class CameraMediaRecorderHelper {
         this.mTextureView = mTextureView;
         this.rotation = rotation;
         currentCameraId = SPUtils.getInstance().getAccountData("openCamera", false) ? 1 : 0;
+        init();
+    }
+
+    private void init() {
         //初始化线程
         initHandler();
         //设置textureView的监听；
@@ -444,13 +448,14 @@ public class CameraMediaRecorderHelper {
         //音频编码格式
         mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
         //录制时间最大设置
-        mMediaRecorder.setMaxDuration(-1);
+        mMediaRecorder.setMaxDuration(10 * 60 * 1000);
         //文件最大设置
         mMediaRecorder.setMaxFileSize(-1);
         mMediaRecorder.setOnInfoListener((mr, what, extra) -> {
-            Toast.makeText(BaseApplication.getContext(), "onInfo信息回掉了", Toast.LENGTH_SHORT).show();
             if (what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED) {
+                Toast.makeText(BaseApplication.getContext(), "10分钟时间到了", Toast.LENGTH_SHORT).show();
                 mr.stop();
+                init();
             }
         });
 //        //设置视频录制输出的方向方向；
@@ -468,11 +473,10 @@ public class CameraMediaRecorderHelper {
 //        }
         if (currentCameraId == 1) {//后置
             int pro = SPUtils.getInstance().getAccountData("openRearCamera", 0);
-            ;
             mMediaRecorder.setOrientationHint(pro);
         } else {
             int pro = SPUtils.getInstance().getAccountData("openFrontCamera", 0);
-            ;
+
             mMediaRecorder.setOrientationHint(pro);
         }
         String videoPath = Environment.getExternalStoragePublicDirectory(DIRECTORY_MOVIES) + "/video_" + timeStamp2Date(System.currentTimeMillis()) + ".mp4";

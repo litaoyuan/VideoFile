@@ -43,9 +43,11 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint("SetTextI18n")
     private void initView() {
         if (!SPUtils.getInstance().getAccountData("openCamera", false)) {
+            SPUtils.getInstance().setAccountData("openCamera", true);
             mBinding.box2.setChecked(true);
             mBinding.box1.setChecked(false);
         } else {
+            SPUtils.getInstance().setAccountData("openCamera", false);
             mBinding.box1.setChecked(true);
             mBinding.box2.setChecked(false);
         }
@@ -107,12 +109,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void initOpenFront() {
         int pro = SPUtils.getInstance().getAccountData("openFrontCamera", 0);
-        mBinding.tvFrontJiaodu.setText("前置摄像头旋转" + pro + "度");
+        mBinding.tvFrontJiaodu.setText("后置摄像头旋转" + pro + "度");
     }
 
     private void initOpenRear() {
         int pro = SPUtils.getInstance().getAccountData("openRearCamera", 0);
-        mBinding.tvRearJiaodu.setText("后置摄像头旋转" + pro + "度");
+        mBinding.tvRearJiaodu.setText("前置摄像头旋转" + pro + "度");
     }
 
     private void stopSevrice() {
