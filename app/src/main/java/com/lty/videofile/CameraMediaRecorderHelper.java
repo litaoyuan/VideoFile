@@ -42,6 +42,8 @@ import android.view.TextureView;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import org.greenrobot.eventbus.EventBus;
+
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileNotFoundException;
@@ -123,6 +125,7 @@ public class CameraMediaRecorderHelper {
     private boolean mIsRecordingVideo;
     private CamcorderProfile profile;
     private int rotation;
+    private boolean isTimeFinish;//录制时间到了
 
     @SuppressLint("NewApi")
     public CameraMediaRecorderHelper(AutoFitTextureView mTextureView, int rotation) {
@@ -426,7 +429,7 @@ public class CameraMediaRecorderHelper {
                 mMediaRecorder.setInputSurface(mRecorderSurface);
             }
         }
-//音频源
+        //音频源
         mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         //视频源,意思是从Surface里面读取画面去录制
         mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
@@ -439,8 +442,34 @@ public class CameraMediaRecorderHelper {
         //码率
         mMediaRecorder.setVideoEncodingBitRate(Integer.MAX_VALUE);
         //直接采用QUALITY_HIGH,这样可以提高视频的录制质量，但是不能设置编码格式和帧率等参数。
-        profile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH);
+//        if (SPUtils.getInstance().getAccountData("initProfile", false)) {
+//            profile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH);
+//        } else {
+//            profile = CamcorderProfile.get(CamcorderProfile.QUALITY_1080P);
+//        }
+        //1、最高  6、1080P  5、720P  4、480P
+        String pStr = "";
+        int gaoqingdu = SPUtils.getInstance().getAccountData("initProfile", 6);
+        switch (gaoqingdu) {
+            case 4:
+                profile = CamcorderProfile.get(CamcorderProfile.QUALITY_480P);
+                pStr = "480P";
+                break;
+            case 5:
+                profile = CamcorderProfile.get(CamcorderProfile.QUALITY_720P);
+                pStr = "720P";
+                break;
+            case 1:
+                profile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH);
+                pStr = "HIGH";
+                break;
+            default:
+                pStr = "1080P";
+                profile = CamcorderProfile.get(CamcorderProfile.QUALITY_1080P);
+                break;
+        }
         //视频宽高
+        Toast.makeText(BaseApplication.getContext(), "打印视频分辨率===" + profile.videoFrameWidth + "===" + profile.videoFrameHeight, Toast.LENGTH_SHORT).show();
         Log.e(TAG, "打印视频分辨率===" + profile.videoFrameWidth + "===" + profile.videoFrameHeight);
         mMediaRecorder.setVideoSize(profile.videoFrameWidth, profile.videoFrameHeight);
         // 视频编码格式
@@ -453,10 +482,14 @@ public class CameraMediaRecorderHelper {
         mMediaRecorder.setMaxFileSize(-1);
         mMediaRecorder.setOnInfoListener((mr, what, extra) -> {
             if (what == MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED) {
-                Toast.makeText(BaseApplication.getContext(), "10分钟时间到了", Toast.LENGTH_SHORT).show();
-                mr.stop();
-                init();
+                if (!isTimeFinish) {
+                    isTimeFinish = true;
+                    Log.e(TAG, "录制视频时间到了");
+                    EventBus.getDefault().post(new BaseEvent());
+                }
+
             }
+            Log.e(TAG, "OnInfo回掉==" + what);
         });
 //        //设置视频录制输出的方向方向；
 //        Log.e(TAG, "传感器方向==" + mSensorOrientation);
@@ -479,7 +512,7 @@ public class CameraMediaRecorderHelper {
 
             mMediaRecorder.setOrientationHint(pro);
         }
-        String videoPath = Environment.getExternalStoragePublicDirectory(DIRECTORY_MOVIES) + "/video_" + timeStamp2Date(System.currentTimeMillis()) + ".mp4";
+        String videoPath = Environment.getExternalStoragePublicDirectory(DIRECTORY_MOVIES) + "/video_" + timeStamp2Date(System.currentTimeMillis()) + pStr + ".mp4";
         Log.e(TAG, "打印视频路径===" + videoPath);
         mMediaRecorder.setOutputFile(videoPath);
         try {
@@ -504,17 +537,17 @@ public class CameraMediaRecorderHelper {
         Log.d(TAG, "edc start video session");
         try {
             mIsRecordingVideo = true;
-            //开启子线程，为了防止卡顿出现
-            new Thread(() -> {
-                try {
-                    //初始化mediaRecorde；
-                    initMediaRecorder();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-            }).start();
-
+//            //开启子线程，为了防止卡顿出现
+//            new Thread(() -> {
+//                try {
+//                    //初始化mediaRecorde；
+//                    initMediaRecorder();
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//
+//            }).start();
+            initMediaRecorder();
         } catch (Exception e) {
             mIsRecordingVideo = false;
             e.printStackTrace();
@@ -526,7 +559,7 @@ public class CameraMediaRecorderHelper {
      * 停止视频录制；
      */
 
-    public void stopRecordingVideo() {
+    public void stopRecordingVideo(boolean isStart) {
         releaseCamera();
         mIsRecordingVideo = false;
         if (mMediaRecorder != null) {
@@ -534,11 +567,16 @@ public class CameraMediaRecorderHelper {
             try {
                 mMediaRecorder.stop();
                 Toast.makeText(BaseApplication.getContext(), "服务停止了视频保存成功", Toast.LENGTH_SHORT).show();
+                if (isStart) {
+                    init();
+                }
             } catch (Exception e) {
 
                 e.printStackTrace();
             }
+
         }
+
     }
 
 
@@ -598,10 +636,10 @@ public class CameraMediaRecorderHelper {
             mCameraHandler.removeCallbacksAndMessages(null);
             mCameraHandler = null;
         }
-        if (handlerThread != null) {
-            handlerThread.quitSafely();
-            handlerThread = null;
-        }
+//        if (handlerThread != null) {
+//            handlerThread.quitSafely();
+//            handlerThread = null;
+//        }
 
         mCameraManager = null;
         sessionStateCb = null;

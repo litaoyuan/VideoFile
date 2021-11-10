@@ -121,13 +121,13 @@ public class MonitorService extends Service {
     }
 
 
-
     @Override
     public void onDestroy() {
         super.onDestroy();
+        Log.e("CameraMedia", "服务停止了");
         isStarted = false;
         if (cameraMediaRecorderHelper != null) {
-            cameraMediaRecorderHelper.stopRecordingVideo();
+            cameraMediaRecorderHelper.stopRecordingVideo(false);
         }
         stopForeground(true);
         if (mWindowManager != null) {

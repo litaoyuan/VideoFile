@@ -7,6 +7,7 @@ import android.hardware.camera2.CameraCharacteristics;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.StatFs;
 import android.text.format.Formatter;
 import android.util.Log;
@@ -16,6 +17,10 @@ import com.hjq.permissions.OnPermissionCallback;
 import com.hjq.permissions.Permission;
 import com.hjq.permissions.XXPermissions;
 import com.lty.videofile.databinding.ActivityMainBinding;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.List;
 
@@ -31,6 +36,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (!EventBus.getDefault().isRegistered(this)) {//加上判断
+            EventBus.getDefault().register(this);
+        }
         mActivity = this;
         mBinding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(mBinding.getRoot());
@@ -38,21 +46,79 @@ public class MainActivity extends AppCompatActivity {
         showAvailableSize();
         initOpenRear();
         initOpenFront();
+        initProfile();
+    }
+
+    private void initProfile() {
+        //1、最高  6、1080P  5、720P  4、480P
+        int gaoqingdu = SPUtils.getInstance().getAccountData("initProfile", 6);
+        switch (gaoqingdu) {
+            case 4:
+                mBinding.checkbox1.setChecked(false);
+                mBinding.checkbox2.setChecked(false);
+                mBinding.checkbox3.setChecked(false);
+                mBinding.checkbox4.setChecked(true);
+                break;
+            case 5:
+                mBinding.checkbox1.setChecked(false);
+                mBinding.checkbox2.setChecked(false);
+                mBinding.checkbox3.setChecked(true);
+                mBinding.checkbox4.setChecked(false);
+                break;
+            case 1:
+                mBinding.checkbox1.setChecked(false);
+                mBinding.checkbox2.setChecked(true);
+                mBinding.checkbox3.setChecked(false);
+                mBinding.checkbox4.setChecked(false);
+                break;
+            default:
+                mBinding.checkbox1.setChecked(true);
+                mBinding.checkbox2.setChecked(false);
+                mBinding.checkbox3.setChecked(false);
+                mBinding.checkbox4.setChecked(false);
+                break;
+        }
+        //1、最高  6、1080P  5、720P  4、480P
+        mBinding.llCheck1.setOnClickListener(v -> {
+            SPUtils.getInstance().setAccountData("initProfile", 6);
+            mBinding.checkbox1.setChecked(true);
+            mBinding.checkbox2.setChecked(false);
+            mBinding.checkbox3.setChecked(false);
+            mBinding.checkbox4.setChecked(false);
+        });
+        mBinding.llCheck2.setOnClickListener(v -> {
+            SPUtils.getInstance().setAccountData("initProfile", 1);
+            mBinding.checkbox2.setChecked(true);
+            mBinding.checkbox1.setChecked(false);
+            mBinding.checkbox3.setChecked(false);
+            mBinding.checkbox4.setChecked(false);
+        });
+        mBinding.llCheck3.setOnClickListener(v -> {
+            SPUtils.getInstance().setAccountData("initProfile", 5);
+            mBinding.checkbox2.setChecked(false);
+            mBinding.checkbox1.setChecked(false);
+            mBinding.checkbox3.setChecked(true);
+            mBinding.checkbox4.setChecked(false);
+        });
+        mBinding.llCheck4.setOnClickListener(v -> {
+            SPUtils.getInstance().setAccountData("initProfile", 4);
+            mBinding.checkbox2.setChecked(false);
+            mBinding.checkbox1.setChecked(false);
+            mBinding.checkbox3.setChecked(false);
+            mBinding.checkbox4.setChecked(true);
+        });
     }
 
     @SuppressLint("SetTextI18n")
     private void initView() {
         if (!SPUtils.getInstance().getAccountData("openCamera", false)) {
-            SPUtils.getInstance().setAccountData("openCamera", true);
             mBinding.box2.setChecked(true);
             mBinding.box1.setChecked(false);
         } else {
-            SPUtils.getInstance().setAccountData("openCamera", false);
             mBinding.box1.setChecked(true);
             mBinding.box2.setChecked(false);
         }
         mBinding.ll1.setOnClickListener(v -> {
-//            Log.e("打印文件路径===",Environment.getExternalStoragePublicDirectory(DIRECTORY_DCIM)+"==");
             mBinding.box1.setChecked(true);
             mBinding.box2.setChecked(false);
             SPUtils.getInstance().setAccountData("openCamera", true);
@@ -120,15 +186,17 @@ public class MainActivity extends AppCompatActivity {
     private void stopSevrice() {
         mBinding.imgOpen.setText("开始视频录制");
         stopService(new Intent(mActivity, MonitorService.class));
+        Log.e("CameraMedia", "停止服务");
     }
 
 
     private void openService() {
         if (!MonitorService.isStarted) {
+            Log.e("CameraMedia", "开启服务");
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(new Intent(mActivity, MonitorService.class).putExtra("type", CameraCharacteristics.LENS_FACING_FRONT));
+                startForegroundService(new Intent(mActivity, MonitorService.class));
             } else {
-                startService(new Intent(mActivity, MonitorService.class).putExtra("type", CameraCharacteristics.LENS_FACING_FRONT));
+                startService(new Intent(mActivity, MonitorService.class));
             }
             mBinding.imgOpen.setText("视频录制中");
             Toast.makeText(mActivity, "视频录制中", Toast.LENGTH_SHORT).show();
@@ -138,6 +206,21 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (EventBus.getDefault().isRegistered(this)) {//加上判断
+            EventBus.getDefault().unregister(this);
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void getNull(BaseEvent event) {
+        Log.e("CameraMedia", "BaseEvent");
+        stopSevrice();
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                openService();
+            }
+        }, 500);
     }
 
     /**

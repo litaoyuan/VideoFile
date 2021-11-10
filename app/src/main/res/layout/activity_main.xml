@@ -7,8 +7,9 @@
     tools:context=".MainActivity">
 
     <LinearLayout
+        android:gravity="center"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="50dp">
 
         <LinearLayout
             android:id="@+id/ll1"
@@ -46,6 +47,92 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="后置摄像头" />
+        </LinearLayout>
+    </LinearLayout>
+    <LinearLayout
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="50dp">
+
+        <LinearLayout
+            android:id="@+id/ll_check1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center">
+
+            <com.google.android.material.checkbox.MaterialCheckBox
+                android:id="@+id/checkbox1"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:clickable="false" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="清晰度1080" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/ll_check2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center">
+
+            <com.google.android.material.checkbox.MaterialCheckBox
+                android:id="@+id/checkbox2"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:clickable="false" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="清晰度最高" />
+        </LinearLayout>
+    </LinearLayout>
+    <LinearLayout
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="50dp">
+
+        <LinearLayout
+            android:id="@+id/ll_check3"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center">
+
+            <com.google.android.material.checkbox.MaterialCheckBox
+                android:id="@+id/checkbox3"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:clickable="false" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="清晰度720" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/ll_check4"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center">
+
+            <com.google.android.material.checkbox.MaterialCheckBox
+                android:id="@+id/checkbox4"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:clickable="false" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="清晰度480" />
         </LinearLayout>
     </LinearLayout>
 
